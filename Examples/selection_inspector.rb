@@ -1,11 +1,11 @@
-require_relative "../persistent_observer.rb"
+require_relative "../persistent_notifier.rb"
 
 # Example of how PersistentNotifier can be used for inspecting the selection.
 #
-# if everything works, the window count should change whenever the selection
+# If everything works, the window count should change whenever the selection
 # changes, even after a new model has been opened.
 #
-# This is a simplified example, in a real use case the window content should
+# This is a simplified example; in a real use case the window content should
 # update when the user switches model and probably display something more
 # useful than the type names.
 class SelectionInspector < Sketchup::SelectionObserver

@@ -1,5 +1,5 @@
 require 'testup/testcase'
-require_relative '../../persistent_observer.rb'
+require_relative '../../persistent_notifier.rb'
 
 class TC_PersistentObserver < TestUp::TestCase
   def setup
@@ -94,6 +94,9 @@ class TC_PersistentObserver < TestUp::TestCase
     assert_raises(ArgumentError) do
       PersistentNotifier.add_observer(EntitiesObserver.new)
     end
+
+    # Clean up.
+    PersistentNotifier.remove_observer(observer)
   end
 
   private
