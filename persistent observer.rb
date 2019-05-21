@@ -14,8 +14,6 @@ module PersistentNotifier
   # on Mac.
   @observers ||= {}
 
-  # TODO: At some point purge deleted subjects from @observers hash values.
-
   # Add observer and have it persists between models.
   #
   # @param observer [Object]
@@ -79,6 +77,11 @@ module PersistentNotifier
   end
   private_class_method :register_observers
 
+  # Purge deleted subjects from observer subject set.
+  def self.purge_invalid_subjects
+    @observers.each_value { |ss| s.select! { |s| valid?(s) } }
+  end
+
   # Get object to attach observer to based on observer's class.
   #
   # @param model [Sketchup::Model]
@@ -113,6 +116,7 @@ module PersistentNotifier
   # Expected to be called whenever a model is created, opened, or activated
   # (switched to in multi document Mac version of SketchUp).
   def self.on_model_init(model)
+    purge_invalid_subjects
     register_observers(model)
   end
 
