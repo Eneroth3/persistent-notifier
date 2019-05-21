@@ -69,10 +69,12 @@ module PersistentNotifier
   def self.register_observers(model)
     @observers.each do |observer, subjects|
       subject = guess_subject(model, observer)
-
-      # Don't add duplicates.
-      next if subjects.include?(subject)
-
+      # Ass observer regardless of whether subject is in the existing subjects
+      # set, as SketchUp re-uses the same Model object when switching model on
+      # PC.
+      # At least SketchUp seems to be smart enough to not fire callbacks
+      # multiple times if the observer is added multiple times.
+      ### next if subjects.include?(subject)
       subject.add_observer(observer)
       subjects.add(subject)
     end

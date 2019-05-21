@@ -82,8 +82,8 @@ class TC_PersistentObserver < TestUp::TestCase
     assert_equal(1, observer.call_count)
 
     # Confirm observer persist between models.
-    observer.call_count = 0
     open_new_model
+    observer.call_count = 0
     change_selection
     assert_equal(1, observer.call_count)
 
