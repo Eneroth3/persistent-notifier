@@ -23,20 +23,17 @@ module PersistentNotifier
   #   AppObservers and FrameChangeObservers are already persistent in SketchUp
   #   and not supported by this wrapper.
   #
-  #   Observers listening to entities that can re-occur in a model, e.g.
-  #   DrawingElements, are not supported, as this wrapper can't know what entity
-  #   you want to listen to.
+  #   Observers listening to objects that can re-occur in a model, e.g.
+  #   Entities or Entity, are not supported, as this wrapper can't guess what
+  #   object you want to listen to.
+  #
+  # @raise [ArgumentError] for unsupported observers.
+  #
+  # @return [void]
   def self.add_observer(observer)
     raise ArgumentError unless VALID_OBSERVERS.any? { |c| observer.is_a?(c) }
 
     @observers[observer] ||= Set.new
-
-    # SketchUp doesn't offer a way to iterate open models, which could otherwise
-    # be used to attach observers to them all. Instead listen to
-    # AppObserver#onActivateModel to attach observer to any other model when
-    # relevant.
-    # OPIMIZE: Should there be a separate method attaching only this observer,
-    # instead of iterating all observers and try to attach them?
     register_observers(Sketchup.active_model)
 
     nil
@@ -47,7 +44,10 @@ module PersistentNotifier
   # @param observer [Object]
   #   See VALID_OBSERVERS for supported observer classes.
   #
-  # @raises [ArgumentError] if observer has not first been added.
+  # @raise [ArgumentError] if observer has not first been added.
+  # @raise [ArgumentError] for unsupported observers.
+  #
+  # @return [void]
   def self.remove_observer(observer)
     raise ArgumentError unless VALID_OBSERVERS.any? { |c| observer.is_a?(c) }
     raise ArgumentError, "Observer not attached." unless @observers[observer]
@@ -60,8 +60,8 @@ module PersistentNotifier
 
   #-----------------------------------------------------------------------------
 
-  # Internal method for actually actually registering the observers to the
-  # SketchUp Ruby API.
+  # Internal method for actually registering the observers to the SketchUp Ruby
+  # API.
   #
   # @param model [Sketchup::Model]
   #
@@ -69,8 +69,10 @@ module PersistentNotifier
   def self.register_observers(model)
     @observers.each do |observer, subjects|
       subject = guess_subject(model, observer)
+
       # Don't add duplicates.
       next if subjects.include?(subject)
+
       subject.add_observer(observer)
       subjects.add(subject)
     end
@@ -78,9 +80,12 @@ module PersistentNotifier
   private_class_method :register_observers
 
   # Purge deleted subjects from observer subject set.
+  #
+  # @return [void]
   def self.purge_invalid_subjects
-    @observers.each_value { |ss| s.select! { |s| valid?(s) } }
+    @observers.each_value { |ss| ss.select! { |s| valid?(s) } }
   end
+  private_class_method :purge_invalid_subjects
 
   # Get object to attach observer to based on observer's class.
   #
@@ -111,6 +116,7 @@ module PersistentNotifier
     (object.is_a?(Sketchup::Entity) && object.valid?) \
     || (object.respond_to?(:model) && object.model.valid?)
   end
+  private_class_method :valid?
 
   # @private
   # Expected to be called whenever a model is created, opened, or activated
@@ -141,8 +147,6 @@ module PersistentNotifier
 
   unless @loaded
     @loaded = true
-    # OPTIMIZE: Attach when @observers gets first entry and remove when it is
-    # emptied?
     Sketchup.add_observer(AppObserver.new)
   end
 end

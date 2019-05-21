@@ -1,5 +1,5 @@
 require 'testup/testcase'
-require_relative '../../persistent observer.rb'
+require_relative '../../persistent_observer.rb'
 
 class TC_PersistentObserver < TestUp::TestCase
   def setup

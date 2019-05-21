@@ -1,0 +1,3 @@
+./**/*.rb
+--no-private
+--exclude ^./tests/
