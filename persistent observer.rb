@@ -54,7 +54,7 @@ module PersistentNotifier
     raise ArgumentError unless VALID_OBSERVERS.any? { |c| observer.is_a?(c) }
     raise ArgumentError, "Observer not attached." unless @observers[observer]
 
-    @observers[observer].each { |s| s.remove_observer(observer) if s.valid? }
+    @observers[observer].each { |s| s.remove_observer(observer) if valid?(s) }
     @observers.delete(observer)
 
     nil
@@ -98,6 +98,16 @@ module PersistentNotifier
     end
   end
   private_class_method :guess_subject
+
+  # Check if object still exists.
+  #
+  # @param object [Sketchup::Entity, #model]
+  def self.valid?(object)
+    # There is no #valid? method for Selection. Instead check if its model
+    # is valid.
+    (object.is_a?(Sketchup::Entity) && object.valid?) \
+    || (object.respond_to?(:model) && object.model.valid?)
+  end
 
   # @private
   # Expected to be called whenever a model is created, opened, or activated
